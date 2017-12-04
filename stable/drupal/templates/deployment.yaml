@@ -20,14 +20,14 @@ spec:
         imagePullPolicy: {{ default "" .Values.imagePullPolicy | quote }}
         env:
         - name: MARIADB_HOST
-          value: {{ template "drupal.mariadb.fullname" . }}
+          value: {{ .Values.cloudsql.cloudsqlHost }}
         - name: MARIADB_PORT_NUMBER
           value: "3306"
         - name: MARIADB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ template "drupal.mariadb.fullname" . }}
-              key: mariadb-root-password
+              name: cloudsql-db-credentials
+              key: password
         - name: DRUPAL_USERNAME
           value: {{ default "" .Values.drupalUsername | quote }}
         - name: DRUPAL_PASSWORD
@@ -62,6 +62,19 @@ spec:
       imagePullSecrets:
 {{ toYaml .Values.imagePullSecrets | indent 8 }}
       {{- end }}
+      - name: cloudsql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:1.11
+        command: ["/cloud_sql_proxy", "--dir=/cloudsql",
+                  "-instances={{ .Values.cloudsql.connectioName }}=tcp:3306",
+                  "-credential_file=/secrets/cloudsql/credentials.json"]
+        volumeMounts:
+          - name: cloudsql-instance-credentials
+            mountPath: /secrets/cloudsql
+            readOnly: true
+          - name: ssl-certs
+            mountPath: /etc/ssl/certs
+          - name: cloudsql
+            mountPath: /cloudsql
       volumes:
       - name: drupal-data
       {{- if .Values.persistence.enabled }}
@@ -79,3 +92,11 @@ spec:
         emptyDir: {}
       {{- end }}
       {{- end }}
+      - name: cloudsql-instance-credentials
+        secret:
+          secretName: cloudsql-instance-credentials
+      - name: cloudsql
+        emptyDir:
+      - name: ssl-certs
+        hostPath:
+          path: /etc/ssl/certs

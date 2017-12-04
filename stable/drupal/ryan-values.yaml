@@ -36,7 +36,7 @@ drupalEmail: user@example.com
 ##
 
 cloudsql:
-  connectioName: instancename
+  connectioName: "training-dev-global:europe-west1:drupal"
   cloudsqlHost: localhost
 
 ##
@@ -46,7 +46,7 @@ mariadb:
   ## MariaDB admin password
   ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#setting-the-root-password-on-first-run
   ##
-  # mariadbRootPassword:
+  mariadbRootPassword: lush1234
 
   ## Enable persistence using Persistent Volume Claims
   ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
